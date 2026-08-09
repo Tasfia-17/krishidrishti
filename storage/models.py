@@ -1,8 +1,6 @@
 """
 KrishiDrishti Data Models
-Repurposed from ScreenMind's screenmind/storage/models.py
-
-DiagnosisRecord is the crop-disease equivalent of ScreenMind's ActivityRecord.
+Pydantic models for KrishiDrishti crop disease diagnosis data.
 """
 from datetime import datetime
 from typing import List, Optional
@@ -12,7 +10,7 @@ from pydantic import BaseModel, Field
 class DiagnosisRecord(BaseModel):
     """
     Structured output from Gemma 4 crop analysis.
-    Analogous to ScreenMind's ActivityRecord — represents one analysis event.
+    One crop disease analysis result from Gemma 4.
     """
     # Crop identification
     crop_name: str = Field(default="Unknown Crop", description="Identified crop species")
@@ -84,7 +82,7 @@ class DiagnosisHistoryEntry(BaseModel):
     """
     A diagnosis record stored in SQLite history.
     Wraps DiagnosisRecord with database metadata.
-    Analogous to ScreenMind's ActivityRecord with timestamp in the DB.
+    A diagnosis record stored in the SQLite history database.
     """
     id: int = Field(description="Auto-incremented database ID")
     timestamp: datetime = Field(description="When the diagnosis was performed")

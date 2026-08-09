@@ -26,23 +26,6 @@ Everything is stored in a local SQLite database. History is searchable. Works of
 
 ---
 
-## Built on ScreenMind
-
-KrishiDrishti is built by repurposing **[ScreenMind](https://github.com/ayushh0110/ScreenMind)** (winner, Build with Gemma 4 hackathon). The core architecture is identical, only the domain changes:
-
-| ScreenMind | KrishiDrishti |
-|---|---|
-| `engine/analyzer.py` - screenshot to activity JSON | `gemma_engine/crop_analyzer.py` - crop photo to diagnosis JSON |
-| `engine/llm_client.py` - Gemma vision calls | `gemma_engine/llm_client.py` - same, minus audio |
-| `storage/database.py` - activity history | `storage/database.py` - diagnosis history |
-| `api/server.py` - timeline/chat endpoints | `api/server.py` - diagnose/history endpoints |
-| Screen capture loop | Removed, replaced by photo upload |
-| Meeting transcription | Removed, not needed for agriculture |
-
-The same three-stage JSON parse pipeline (extract, repair, regex fallback) gives ~99% parse success rate on Gemma's structured output.
-
----
-
 ## Quick Start
 
 ### 1. Install dependencies
@@ -167,8 +150,8 @@ krishidrishti/
 ├── .env.example
 │
 ├── gemma_engine/
-│   ├── llm_client.py            llama-server HTTP client (repurposed from ScreenMind)
-│   └── crop_analyzer.py         Crop disease analysis engine (repurposed from ScreenMind)
+│   ├── llm_client.py            llama-server HTTP client (vision + text)
+│   └── crop_analyzer.py         Gemma 4 crop disease analysis engine
 │
 ├── storage/
 │   ├── models.py                Pydantic models: DiagnosisRecord, DiagnosisHistoryEntry
@@ -209,12 +192,6 @@ python main.py --mode accurate
 # Skip opening browser
 python main.py --no-browser
 ```
-
----
-
-## Acknowledgements
-
-Built on top of [ScreenMind](https://github.com/ayushh0110/ScreenMind) by [@ayushh0110](https://github.com/ayushh0110), the winning entry from the Build with Gemma 4 hackathon at AI Durg. The core Gemma inference architecture, JSON parse pipeline, and storage layer are repurposed from that project.
 
 ---
 

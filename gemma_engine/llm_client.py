@@ -1,7 +1,5 @@
 """
 Gemma 4 LLM Client for KrishiDrishti
-Repurposed from ScreenMind's screenmind/engine/llm_client.py
-
 Communicates with llama-server (llama.cpp) via OpenAI-compatible API.
 Supports text and vision (image) input for crop disease analysis.
 """

@@ -1,7 +1,5 @@
 """
 KrishiDrishti FastAPI Server
-Repurposed from ScreenMind's screenmind/api/server.py
-
 Endpoints:
   POST /api/diagnose        — Upload crop photo → get diagnosis
   GET  /api/history         — Diagnosis history list

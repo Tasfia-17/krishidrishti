@@ -1,12 +1,10 @@
 """
-KrishiDrishti — Gemma 4 Crop Disease Analyzer
-Repurposed from ScreenMind's screenmind/engine/analyzer.py
-
+KrishiDrishti - Gemma 4 Crop Disease Analyzer
 Sends crop/plant photos to Gemma 4 via llama-server and returns structured
 diagnosis data: disease identification, severity, treatment advice in Hindi and
 English, confidence score, and actionable recommendations.
 
-Three analysis modes (matching ScreenMind's fast/balanced/accurate pattern):
+Three analysis modes:
   - analyze_fast():     No thinking tokens, ~12s. For quick scans.
   - analyze_balanced(): Thinking enabled, ~30s. Best for demo.
   - analyze_accurate(): Thinking + multi-aspect analysis, ~60s. Maximum detail.
@@ -95,10 +93,8 @@ Return ONLY valid JSON."""
 class CropAnalyzer:
     """
     Analyzes crop/plant photos using Gemma 4 vision via llama-server.
-    Repurposed from ScreenMind's GemmaAnalyzer — adapted for agriculture.
+    Gemma 4 vision analyzer for crop disease detection.
 
-    The core logic (image encoding, prompt construction, JSON parsing,
-    repair pipeline) is directly adapted from ScreenMind's analyzer.py.
     """
 
     def __init__(self):
@@ -194,7 +190,7 @@ class CropAnalyzer:
         """
         Fast mode: no thinking tokens, ~12s.
         Uses JSON prefill trick (assistant pre-populated with '{') for speed.
-        Directly adapted from ScreenMind's analyze_screenshot_fast().
+        Fast mode using JSON prefill for immediate output.
         """
         self._ensure_client()
 
@@ -283,8 +279,6 @@ class CropAnalyzer:
     def _image_to_bytes(self, image: Image.Image, max_dim: int = 768) -> bytes:
         """
         Convert PIL Image to optimized JPEG bytes for Gemma 4 input.
-        Adapted from ScreenMind's _image_to_bytes().
-
         768px balances accuracy vs VRAM usage on 4GB GPUs (Gemma 4 E2B).
         1024px for accurate mode where detail matters more.
         """
@@ -312,7 +306,7 @@ class CropAnalyzer:
         return base_prompt
 
     # ── Response Parsing ──────────────────────────────────────────────────────
-    # Adapted from ScreenMind's multi-stage parse pipeline.
+    # Multi-stage parse pipeline.
     # Handles Gemma's tendency to wrap JSON in markdown, add thinking tokens,
     # or emit truncated/malformed JSON (~15% of the time).
 
@@ -349,7 +343,7 @@ class CropAnalyzer:
         """
         Full parse pipeline: extract → parse → repair → regex.
         Returns DiagnosisRecord on success, None if everything fails.
-        Adapted from ScreenMind's _safe_parse_json().
+        Full parse pipeline: extract, parse, repair, regex fallback.
         """
         if not raw:
             return None
@@ -387,7 +381,7 @@ class CropAnalyzer:
         """
         Extract a JSON object from raw Gemma output.
         Handles: clean JSON, markdown code blocks, JSON embedded in prose.
-        Adapted from ScreenMind's _extract_json().
+        Extract a JSON object from raw Gemma output.
         """
         text = text.strip()
 
@@ -416,7 +410,7 @@ class CropAnalyzer:
         """
         Attempt to fix common JSON issues from Gemma output.
         Handles: trailing commas, missing closing braces, truncated strings.
-        Adapted from ScreenMind's _repair_json().
+        Attempt to fix common JSON issues from Gemma output.
         """
         s = broken.strip()
 
@@ -454,7 +448,7 @@ class CropAnalyzer:
         """
         Last-resort field extraction using regex patterns.
         Salvages individual fields even from heavily malformed responses.
-        Adapted from ScreenMind's _regex_fallback().
+        Last-resort field extraction using regex patterns.
         """
         def extract_str(pattern: str, default: str = "") -> str:
             m = re.search(pattern, text, re.IGNORECASE | re.DOTALL)

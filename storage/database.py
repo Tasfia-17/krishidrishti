@@ -1,12 +1,9 @@
 """
 KrishiDrishti SQLite Database
-Repurposed from ScreenMind's screenmind/storage/database.py
-
 Stores diagnosis history with full JSON serialization of DiagnosisRecord.
 Uses aiosqlite for async access — keeps the FastAPI server non-blocking.
 
 Schema: one table (diagnoses) with JSON-serialized diagnosis data.
-Same pattern as ScreenMind's activity_log table.
 """
 import json
 import logging
@@ -77,8 +74,6 @@ CREATE_FTS_TRIGGERS = [
 class DiagnosisDatabase:
     """
     Async SQLite database for KrishiDrishti diagnosis history.
-    Repurposed from ScreenMind's ActivityDatabase.
-
     Usage:
         db = DiagnosisDatabase()
         await db.initialize()
