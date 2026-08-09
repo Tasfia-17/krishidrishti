@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KrishiDrishti — AI Crop Doctor | कृषिदृष्टि</title>
+  <style>
+    /* ── Variables ── */
+    :root {
+      --green-dark:   #1a4a2e;
+      --green-mid:    #2d7a4f;
+      --green-light:  #4caf72;
+      --green-pale:   #e8f5ee;
+      --orange:       #e07b39;
+      --orange-pale:  #fdf3ec;
+      --red:          #c0392b;
+      --red-pale:     #fdecea;
+      --yellow:       #f39c12;
+      --yellow-pale:  #fef9e7;
+      --gray-100:     #f9fafb;
+      --gray-200:     #f0f2f4;
+      --gray-300:     #d8dde3;
+      --gray-600:     #6b7280;
+      --gray-800:     #1f2937;
+      --white:        #ffffff;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,.10);
+      --shadow-md:    0 4px 12px rgba(0,0,0,.12);
+      --shadow-lg:    0 8px 30px rgba(0,0,0,.15);
+      --radius:       12px;
+      --radius-sm:    8px;
+      --font:         'Segoe UI', 'Noto Sans Devanagari', system-ui, sans-serif;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--gray-100);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+    img { max-width: 100%; display: block; }
+    button { cursor: pointer; font-family: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+      color: var(--white);
+      padding: 0;
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { font-size: 28px; line-height: 1; }
+    .logo-text h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-text p  { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+    .header-badge {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-300);
+      padding: 6px 16px;
+    }
+    .status-bar-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gray-300);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .status-dot.ok     { background: var(--green-light); }
+    .status-dot.error  { background: var(--red); }
+    .status-dot.pulse  { animation: pulse 1.2s infinite; }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.35; }
+    }
+
+    /* ── Main ── */
+    .main { padding: 24px 16px 48px; max-width: 900px; margin: 0 auto; }
+
+    /* ── Upload Card ── */
+    .upload-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .upload-card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+    .upload-card .subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: 18px;
+    }
+
+    /* Drop zone */
+    .dropzone {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--green-mid);
+      background: var(--green-pale);
+    }
+    .dropzone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .dropzone-icon  { font-size: 40px; margin-bottom: 10px; }
+    .dropzone-title { font-size: 15px; font-weight: 600; color: var(--green-dark); margin-bottom: 4px; }
+    .dropzone-sub   { font-size: 12px; color: var(--gray-600); }
+
+    /* Preview */
+    .preview-wrap {
+      display: none;
+      margin-top: 14px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      position: relative;
+      background: var(--gray-200);
+      max-height: 300px;
+    }
+    .preview-wrap.show { display: block; }
+    .preview-wrap img  { width: 100%; max-height: 300px; object-fit: contain; }
+    .preview-remove {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 28px; height: 28px;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .preview-remove:hover { background: var(--red); }
+
+    /* Farmer note + mode */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      margin-top: 14px;
+      align-items: end;
+    }
+    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--gray-800);
+      background: var(--white);
+      transition: border-color .2s;
+      resize: none;
+    }
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--green-mid);
+    }
+    .form-group select { height: 40px; padding: 0 12px; }
+
+    /* Analyse button */
+    .btn-analyse {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: var(--shadow-sm);
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-analyse:hover:not(:disabled)  { opacity: .9; transform: translateY(-1px); }
+    .btn-analyse:active:not(:disabled) { transform: translateY(0); }
+    .btn-analyse:disabled              { opacity: .55; cursor: not-allowed; }
+
+    /* ── Loader ── */
+    .loader-card {
+      display: none;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 36px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .loader-card.show { display: block; }
+    .loader-spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--green-mid);
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-card h3 { font-size: 16px; color: var(--green-dark); margin-bottom: 6px; }
+    .loader-card p  { font-size: 13px; color: var(--gray-600); }
+    .loader-timer   { font-size: 24px; font-weight: 700; color: var(--green-mid); margin-top: 12px; }
+
+    /* ── Result Card ── */
+    .result-card {
+      display: none;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .result-card.show { display: block; }
+
+    .result-header {
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .result-header.healthy  { background: var(--green-pale);  border-bottom: 3px solid var(--green-light); }
+    .result-header.diseased { background: var(--orange-pale); border-bottom: 3px solid var(--orange); }
+    .result-header.critical { background: var(--red-pale);    border-bottom: 3px solid var(--red); }
+    .result-header.warning  { background: var(--yellow-pale); border-bottom: 3px solid var(--yellow); }
+
+    .result-icon  { font-size: 44px; line-height: 1; flex-shrink: 0; }
+    .result-title { flex: 1; }
+    .result-title h2 { font-size: 20px; font-weight: 800; line-height: 1.2; }
+    .result-title h2 .hindi { font-size: 14px; font-weight: 500; opacity: .75; display: block; margin-top: 2px; }
+    .result-title .crop-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      background: rgba(0,0,0,.07);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .badge-severity-none     { background: #e8f5e9; color: #2e7d32; }
+    .badge-severity-mild     { background: #fff8e1; color: #f57f17; }
+    .badge-severity-moderate { background: #fff3e0; color: #e65100; }
+    .badge-severity-severe   { background: #fce4ec; color: #b71c1c; }
+    .badge-urgency-low      { background: #e8f5e9; color: #2e7d32; }
+    .badge-urgency-medium   { background: #fff8e1; color: #f57f17; }
+    .badge-urgency-high     { background: #fff3e0; color: #e65100; }
+    .badge-urgency-critical { background: #fce4ec; color: #b71c1c; }
+    .badge-confidence       { background: var(--gray-200); color: var(--gray-800); }
+    .badge-affected         { background: #fce4ec; color: #b71c1c; }
+
+    /* Tabs */
+    .result-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--gray-200);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .result-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-600);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color .2s, border-color .2s;
+    }
+    .tab-btn.active {
+      color: var(--green-mid);
+      border-bottom-color: var(--green-mid);
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; padding: 20px; }
+    .tab-panel.active { display: block; }
+
+    .info-section { margin-bottom: 18px; }
+    .info-section:last-child { margin-bottom: 0; }
+    .info-section h4 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+    .info-section p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gray-800);
+    }
+    .info-section .hindi-text {
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: var(--green-pale);
+      border-left: 3px solid var(--green-light);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--green-dark);
+    }
+    .symptoms-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .symptoms-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .symptoms-list li::before {
+      content: "•";
+      color: var(--orange);
+      font-weight: 900;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── History ── */
+    .history-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+    }
+    .history-card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .history-empty {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+    .history-empty .icon { font-size: 36px; margin-bottom: 10px; }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background .15s;
+      border: 1.5px solid transparent;
+    }
+    .history-item:hover { background: var(--green-pale); border-color: var(--green-light); }
+    .history-item-icon { font-size: 26px; flex-shrink: 0; }
+    .history-item-body { flex: 1; min-width: 0; }
+    .history-item-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item-sub {
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-top: 2px;
+    }
+    .history-item-badge {
+      flex-shrink: 0;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .history-item-badge.healthy  { background: #e8f5e9; color: #2e7d32; }
+    .history-item-badge.diseased { background: #fce4ec; color: #b71c1c; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--gray-800);
+      color: var(--white);
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 9999;
+      transition: transform .3s ease, opacity .3s ease;
+      opacity: 0;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: var(--green-mid); }
+    .toast.error   { background: var(--red); }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">🌾</span>
+      <div class="logo-text">
+        <h1>KrishiDrishti</h1>
+        <p>कृषिदृष्टि — AI Crop Doctor · Powered by Gemma 4</p>
+      </div>
+    </div>
+    <span class="header-badge">100% Local</span>
+  </div>
+</header>
+
+<!-- ── Status Bar ── -->
+<div class="status-bar">
+  <div class="status-bar-inner">
+    <span class="status-dot pulse" id="statusDot"></span>
+    <span id="statusText">Connecting to Gemma 4...</span>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<main class="main">
+
+  <!-- Upload Card -->
+  <div class="upload-card">
+    <h2>📸 Crop Photo Analysis</h2>
+    <p class="subtitle">अपनी फसल की फोटो अपलोड करें — Gemma 4 रोग पहचानेगा और उपचार बताएगा</p>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" />
+      <div class="dropzone-icon">🌿</div>
+      <div class="dropzone-title">Click to upload or drag & drop</div>
+      <div class="dropzone-sub">JPEG · PNG · WebP &nbsp;|&nbsp; Max 10 MB</div>
+    </div>
+
+    <div class="preview-wrap" id="previewWrap">
+      <img id="previewImg" src="" alt="Crop preview" />
+      <button class="preview-remove" id="previewRemove" title="Remove">✕</button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>Farmer Note (optional) &nbsp;|&nbsp; किसान का विवरण</label>
+        <textarea id="farmerNote" rows="2"
+          placeholder="e.g. पत्तियों पर पीले धब्बे हैं, 3 दिन से..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Analysis Mode</label>
+        <select id="analysisMode">
+          <option value="">Default</option>
+          <option value="fast">Fast (~12s)</option>
+          <option value="balanced" selected>Balanced (~30s)</option>
+          <option value="accurate">Accurate (~60s)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-analyse" id="btnAnalyse" disabled>
+      🔬 Analyse Crop &nbsp;|&nbsp; फसल की जांच करें
+    </button>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader-card" id="loaderCard">
+    <div class="loader-spinner"></div>
+    <h3>Gemma 4 is analysing your crop...</h3>
+    <p>फसल की जांच हो रही है — कृपया प्रतीक्षा करें</p>
+    <div class="loader-timer" id="loaderTimer">0s</div>
+  </div>
+
+  <!-- Result Card (populated by JS) -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header" id="resultHeader">
+      <span class="result-icon" id="resultIcon">🌾</span>
+      <div class="result-title">
+        <h2 id="resultTitle">—</h2>
+        <span class="crop-badge" id="resultCrop"></span>
+      </div>
+    </div>
+
+    <div class="result-meta" id="resultMeta"></div>
+
+    <div class="result-tabs">
+      <button class="tab-btn active" data-tab="treatment">💊 Treatment / उपचार</button>
+      <button class="tab-btn" data-tab="symptoms">🔍 Symptoms / लक्षण</button>
+      <button class="tab-btn" data-tab="prevention">🛡️ Prevention / बचाव</button>
+      <button class="tab-btn" data-tab="details">📋 Details</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-treatment">
+      <div class="info-section">
+        <h4>Treatment — English</h4>
+        <p id="treatmentEn"></p>
+      </div>
+      <div class="info-section">
+        <h4>उपचार — हिंदी</h4>
+        <div class="hindi-text" id="treatmentHi"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-symptoms">
+      <div class="info-section">
+        <h4>Symptoms Observed</h4>
+        <ul class="symptoms-list" id="symptomsList"></ul>
+      </div>
+      <div class="info-section">
+        <h4>लक्षण — हिंदी</h4>
+        <ul class="symptoms-list" id="symptomsHiList"></ul>
+      </div>
+      <div class="info-section" id="causeSection">
+        <h4>Cause / कारण</h4>
+        <p id="causeText"></p>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-prevention">
+      <div class="info-section">
+        <h4>Prevention — English</h4>
+        <p id="preventionEn"></p>
+      </div>
+      <div class="info-section">
+        <h4>बचाव — हिंदी</h4>
+        <div class="hindi-text" id="preventionHi"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-details">
+      <div class="info-section">
+        <h4>Additional Notes</h4>
+        <p id="additionalNotes"></p>
+      </div>
+      <div class="info-section">
+        <h4>Analysis Details</h4>
+        <p id="analysisDetails" style="font-size:13px; color: var(--gray-600);"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-card" id="historyCard">
+    <h2>
+      📜 Recent Diagnoses
+      <button onclick="loadHistory()" style="font-size:12px;background:none;border:none;color:var(--green-mid);font-weight:600;cursor:pointer;">↻ Refresh</button>
+    </h2>
+    <div id="historyList">
+      <div class="history-empty">
+        <div class="icon">🌱</div>
+        Loading history...
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let selectedFile = null;
+let timerInterval = null;
+
+// ── DOM refs ─────────────────────────────────────────────────────────────────
+const dropzone     = document.getElementById('dropzone');
+const fileInput    = document.getElementById('fileInput');
+const previewWrap  = document.getElementById('previewWrap');
+const previewImg   = document.getElementById('previewImg');
+const previewRemove= document.getElementById('previewRemove');
+const farmerNote   = document.getElementById('farmerNote');
+const analysisMode = document.getElementById('analysisMode');
+const btnAnalyse   = document.getElementById('btnAnalyse');
+const loaderCard   = document.getElementById('loaderCard');
+const loaderTimer  = document.getElementById('loaderTimer');
+const resultCard   = document.getElementById('resultCard');
+const historyList  = document.getElementById('historyList');
+const statusDot    = document.getElementById('statusDot');
+const statusText   = document.getElementById('statusText');
+const toast        = document.getElementById('toast');
+
+// ── Health check ─────────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch('/api/health');
+    const d = await r.json();
+    if (d.gemma_available) {
+      statusDot.className = 'status-dot ok';
+      statusText.textContent = `Gemma 4 connected — ${d.server}`;
+    } else {
+      statusDot.className = 'status-dot error';
+      statusText.textContent = `Gemma 4 not available — start llama-server first`;
+    }
+  } catch {
+    statusDot.className = 'status-dot error';
+    statusText.textContent = 'Cannot reach server';
+  }
+}
+
+// ── File handling ─────────────────────────────────────────────────────────────
+function setFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('Image too large (max 10 MB)', 'error'); return; }
+  selectedFile = file;
+  const url = URL.createObjectURL(file);
+  previewImg.src = url;
+  previewWrap.classList.add('show');
+  btnAnalyse.disabled = false;
+}
+
+function clearFile() {
+  selectedFile = null;
+  fileInput.value = '';
+  previewImg.src = '';
+  previewWrap.classList.remove('show');
+  btnAnalyse.disabled = true;
+}
+
+fileInput.addEventListener('change', e => setFile(e.target.files[0]));
+previewRemove.addEventListener('click', clearFile);
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  setFile(e.dataTransfer.files[0]);
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function startTimer() {
+  let s = 0;
+  loaderTimer.textContent = '0s';
+  timerInterval = setInterval(() => { s++; loaderTimer.textContent = s + 's'; }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+
+// ── Analyse ───────────────────────────────────────────────────────────────────
+btnAnalyse.addEventListener('click', async () => {
+  if (!selectedFile) return;
+
+  // Build FormData
+  const fd = new FormData();
+  fd.append('image', selectedFile, selectedFile.name);
+  if (farmerNote.value.trim()) fd.append('farmer_note', farmerNote.value.trim());
+  if (analysisMode.value)      fd.append('mode', analysisMode.value);
+
+  // Show loader
+  resultCard.classList.remove('show');
+  loaderCard.classList.add('show');
+  btnAnalyse.disabled = true;
+  startTimer();
+
+  try {
+    const res = await fetch('/api/diagnose', { method: 'POST', body: fd });
+    stopTimer();
+    loaderCard.classList.remove('show');
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+      showToast(err.detail || 'Analysis failed', 'error');
+      btnAnalyse.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+    renderResult(data);
+    loadHistory();
+    showToast('Analysis complete! ✓', 'success');
+  } catch (e) {
+    stopTimer();
+    loaderCard.classList.remove('show');
+    btnAnalyse.disabled = false;
+    showToast('Network error — is the server running?', 'error');
+  }
+});
+
+// ── Render result ─────────────────────────────────────────────────────────────
+function renderResult(d) {
+  // Header styling
+  const header = document.getElementById('resultHeader');
+  const icon   = document.getElementById('resultIcon');
+  const title  = document.getElementById('resultTitle');
+  const crop   = document.getElementById('resultCrop');
+
+  header.className = 'result-header';
+  if (d.is_healthy) {
+    header.classList.add('healthy');
+    icon.textContent = '✅';
+  } else if (d.urgency === 'Critical') {
+    header.classList.add('critical');
+    icon.textContent = '🚨';
+  } else if (d.urgency === 'High') {
+    header.classList.add('diseased');
+    icon.textContent = '⚠️';
+  } else {
+    header.classList.add('diseased');
+    icon.textContent = '🔴';
+  }
+
+  const diseaseEn = d.disease_detected && d.disease_detected !== 'None' ? d.disease_detected : 'Healthy';
+  const diseaseHi = d.disease_detected_hindi || '';
+  title.innerHTML = `${diseaseEn}<span class="hindi">${diseaseHi}</span>`;
+  crop.textContent = `🌾 ${d.crop_name}${d.crop_name_hindi ? ' / ' + d.crop_name_hindi : ''}`;
+
+  // Badges
+  const meta = document.getElementById('resultMeta');
+  meta.innerHTML = '';
+  meta.appendChild(makeBadge('severity', d.severity));
+  meta.appendChild(makeBadge('urgency',  d.urgency));
+  if (d.affected_percentage > 0) {
+    meta.appendChild(makeBadge('affected', `${d.affected_percentage}% affected`));
+  }
+  meta.appendChild(makeBadge('confidence', `${Math.round(d.confidence * 100)}% confidence`));
+
+  // Treatment tab
+  document.getElementById('treatmentEn').textContent = d.treatment_english || '—';
+  document.getElementById('treatmentHi').textContent = d.treatment_hindi   || '—';
+
+  // Symptoms tab
+  const syList   = document.getElementById('symptomsList');
+  const syHiList = document.getElementById('symptomsHiList');
+  syList.innerHTML   = (d.symptoms_observed || []).map(s => `<li>${esc(s)}</li>`).join('') || '<li>None reported</li>';
+  syHiList.innerHTML = (d.symptoms_hindi    || []).map(s => `<li>${esc(s)}</li>`).join('') || '<li>—</li>';
+  document.getElementById('causeText').textContent = d.cause || '—';
+
+  // Prevention tab
+  document.getElementById('preventionEn').textContent = d.prevention_english || '—';
+  document.getElementById('preventionHi').textContent = d.prevention_hindi   || '—';
+
+  // Details tab
+  document.getElementById('additionalNotes').textContent = d.additional_notes || '—';
+  document.getElementById('analysisDetails').textContent =
+    `Diagnosis #${d.diagnosis_id} · Mode: ${d.mode_used} · Time: ${d.analysis_time_seconds}s`;
+
+  // Reset to first tab
+  document.querySelectorAll('.tab-btn').forEach((b,i)  => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+
+  resultCard.classList.add('show');
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function makeBadge(type, value) {
+  const span = document.createElement('span');
+  span.className = 'badge';
+  if (type === 'severity')   span.classList.add('badge-severity-' + (value||'').toLowerCase());
+  if (type === 'urgency')    span.classList.add('badge-urgency-'  + (value||'').toLowerCase());
+  if (type === 'confidence') span.classList.add('badge-confidence');
+  if (type === 'affected')   span.classList.add('badge-affected');
+  const labels = { severity: '📊', urgency: '🚦', confidence: '🎯', affected: '🍂' };
+  span.textContent = (labels[type] || '') + ' ' + (value || '—');
+  return span;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/history?limit=10');
+    const d = await r.json();
+    renderHistory(d.entries || []);
+  } catch {
+    historyList.innerHTML = '<div class="history-empty"><div class="icon">⚠️</div>Could not load history</div>';
+  }
+}
+
+function renderHistory(entries) {
+  if (!entries.length) {
+    historyList.innerHTML = '<div class="history-empty"><div class="icon">🌱</div>No diagnoses yet — upload a crop photo to begin</div>';
+    return;
+  }
+  historyList.innerHTML = '';
+  const ul = document.createElement('div');
+  ul.className = 'history-list';
+  entries.forEach(e => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    const ts = new Date(e.timestamp).toLocaleString('en-IN', { dateStyle:'short', timeStyle:'short' });
+    const badgeClass = e.is_healthy ? 'healthy' : 'diseased';
+    const badgeText  = e.is_healthy ? '✓ Healthy' : e.severity || 'Disease';
+    item.innerHTML = `
+      <span class="history-item-icon">${e.is_healthy ? '🟢' : '🔴'}</span>
+      <div class="history-item-body">
+        <div class="history-item-title">${esc(e.crop_name)} — ${esc(e.disease_detected)}</div>
+        <div class="history-item-sub">${ts}${e.farmer_note ? ' · ' + esc(e.farmer_note.slice(0,40)) : ''}</div>
+      </div>
+      <span class="history-item-badge ${badgeClass}">${badgeText}</span>
+    `;
+    ul.appendChild(item);
+  });
+  historyList.appendChild(ul);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimeout = null;
+function showToast(msg, type = '') {
+  toast.textContent = msg;
+  toast.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.className = 'toast'; }, 3200);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+checkHealth();
+setInterval(checkHealth, 30000);
+loadHistory();
+</script>
+</body>
+</html>
