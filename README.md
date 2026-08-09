@@ -28,7 +28,7 @@ Everything is stored in a local SQLite database. History is searchable. Works of
 
 ## Built on ScreenMind
 
-KrishiDrishti is built by repurposing **[ScreenMind](https://github.com/ayushh0110/ScreenMind)** (winner, Build with Gemma 4 hackathon). The core architecture is identical -- only the domain changes:
+KrishiDrishti is built by repurposing **[ScreenMind](https://github.com/ayushh0110/ScreenMind)** (winner, Build with Gemma 4 hackathon). The core architecture is identical, only the domain changes:
 
 | ScreenMind | KrishiDrishti |
 |---|---|
@@ -63,7 +63,7 @@ pip install fastapi uvicorn httpx pillow python-multipart pydantic python-dotenv
 Download a Gemma 4 GGUF model and start llama-server:
 
 ```bash
-# Gemma 4 E2B (recommended -- 4GB VRAM)
+# Gemma 4 E2B (recommended, 4GB VRAM)
 llama-server -m gemma-4-it-Q4_K_M.gguf --port 8080 --n-gpu-layers 99
 
 # Gemma 4 E4B (6GB VRAM, better accuracy)
@@ -104,7 +104,7 @@ DB_PATH=~/.krishidrishti/diagnoses.db
 | Mode | Time on 4GB GPU | When to use |
 |---|---|---|
 | `fast` | ~12s | Quick field check, many photos |
-| `balanced` | ~30s | Default -- best quality/speed tradeoff |
+| `balanced` | ~30s | Default, best quality/speed tradeoff |
 | `accurate` | ~60s | Difficult cases, multiple possible diseases |
 
 ---
@@ -146,7 +146,7 @@ curl -X POST http://localhost:7878/api/diagnose \
     "Orange-brown pustules on leaves",
     "Yellow chlorotic areas"
   ],
-  "cause": "Fungal -- Puccinia triticina",
+  "cause": "Fungal, Puccinia triticina",
   "treatment_english": "Apply Propiconazole 25% EC at 0.1% or Tebuconazole 250 EW at 0.1% spray immediately.",
   "urgency": "High",
   "confidence": 0.89,
@@ -220,4 +220,4 @@ Built on top of [ScreenMind](https://github.com/ayushh0110/ScreenMind) by [@ayus
 
 ## License
 
-MIT -- free to use, modify, and distribute.
+MIT, free to use, modify, and distribute.
